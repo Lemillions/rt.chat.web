@@ -1,0 +1,29 @@
+/* Notification.css */
+.notification
+    position: fixed
+    top: 20px
+    right: 20px
+    padding: 10px 20px
+    border-radius: 5px
+    color: #fff
+    display: flex
+    justify-content: space-between
+    align-items: center
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2)
+    z-index: 1000
+    animation: fadeInOut 5s forwards
+
+    &.success
+        background-color: #4caf50
+
+    &.error
+        background-color: #f44336
+
+    &.warning
+        background-color: #ff9800
+
+@keyframes fadeInOut
+    0%  opacity: 0
+    10%  opacity: 1
+    90%  opacity: 1
+    100%  opacity: 0
