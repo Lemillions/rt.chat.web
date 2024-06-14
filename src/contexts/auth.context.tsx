@@ -1,13 +1,14 @@
 import { createContext, useEffect, useState } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
-import { LoginRequest, MeResponse } from "../types/auth";
+import { LoginRequest, LoginResponse, MeResponse } from "../types/auth";
 import { AuthService } from "../services/auth.service";
+import SideBar from "../components/side-bar";
 
 interface AuthContextData {
   user: MeResponse | null;
   setUser: (user: MeResponse | null) => void;
-  login: (form: LoginRequest) => void;
+  login: (form: LoginRequest) => Promise<LoginResponse>;
   logout: () => void;
   loading: boolean;
 }
@@ -21,13 +22,14 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const [user, setUser] = useState<MeResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const login = async (form: LoginRequest) => {
+  const login = async (form: LoginRequest): Promise<LoginResponse> => {
     const response = await AuthService.login(form);
-    await localStorage.setItem("token", response.token);
+    localStorage.setItem("token", response.token);
     api.defaults.headers.common["Authorization"] = `Bearer ${response.token}`;
     const user = await AuthService.me();
     setUser(user);
-    navigate("/dashboard"); // Navegar para o dashboard após login bem-sucedido
+    navigate("/dashboard"); 
+    return response;
   };
 
   const logout = async () => {

@@ -4,8 +4,14 @@ import './index.sass'
 import { useMutation } from '@tanstack/react-query';
 import { AuthService } from '../../services/auth.service';
 import { AuthUtils } from '../../utils/auth.utils';
+import { useNotification } from '../../contexts/notification.context';
+import { ApiError } from '../../types/error';
+import { useNavigate } from 'react-router-dom'
 
 export default function Register() {
+    // mover para outra pagina
+    const navigate = useNavigate();
+    const { showNotification } = useNotification();
     const [form, setForm] = useState<RegisterRequest>({
         email: '',
         password: '',
@@ -18,9 +24,24 @@ export default function Register() {
         username: ''
     });
 
-    const registerMutation = useMutation<RegisterResponse, Error, RegisterRequest>({
+    const registerMutation = useMutation<RegisterResponse, ApiError, RegisterRequest>({
         mutationFn: (form: RegisterRequest) => AuthService.register(form),
+        onSuccess: () => {
+            showNotification('Cadastro realizado com sucesso', 'success');
+            navigate('/');
+        },
+        onError: (error: ApiError) => {
+            const message = Array.isArray(error.response.data.message) ? error.response.data.message[0] : error.response.data.message;
+            showNotification(message, 'error');
+        }
     });
+
+    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.value.length < 3) {
+            setFormError({ ...formError, username: '' });
+        }
+        setForm({ ...form, username: e.target.value });
+    }
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (AuthUtils.validateEmail(e.target.value)) {
@@ -47,7 +68,7 @@ export default function Register() {
             setFormError({
                 email: emailValid ? '' : 'E-mail inválido',
                 password: passwordValid ? '' : 'Senha tem que ter no mínimo 8 caracteres',
-                username: usernameValid ? '' : 'Nome de usuário tem que ter no mínimo 3 caracteres' 
+                username: usernameValid ? '' : 'Nome de usuário tem que ter no mínimo 3 caracteres'
             });
             return;
         }
@@ -63,7 +84,7 @@ export default function Register() {
                 <h2>Cadastrar</h2>
                 <div className='form-item'>
                     <label htmlFor='username' className='form-label'>Nome de usuário:</label>
-                    <input id="username" className={`form-input ${formError.username && 'error'}`} onChange={handleEmailChange} />
+                    <input id="username" className={`form-input ${formError.username && 'error'}`} onChange={handleUsernameChange} />
                     <span className='form-error'>{formError.username}</span>
                 </div>
                 <div className='form-item'>

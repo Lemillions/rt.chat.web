@@ -2,10 +2,14 @@ import { useState } from 'react';
 import { LoginRequest, LoginResponse } from '../../types/auth';
 import './index.sass'
 import { useMutation } from '@tanstack/react-query';
-import { AuthService } from '../../services/auth.service';
 import { AuthUtils } from '../../utils/auth.utils';
+import { useNotification } from '../../contexts/notification.context';
+import { ApiError } from '../../types/error';
+import { useAuth } from '../../hooks/use-auth.hook';
 
 export default function Login() {
+    const { login } = useAuth();
+    const { showNotification } = useNotification();
     const [form, setForm] = useState<LoginRequest>({
         email: '',
         password: ''
@@ -16,8 +20,12 @@ export default function Login() {
         password: ''
     });
 
-    const loginMutation = useMutation<LoginResponse, Error, LoginRequest>({
-        mutationFn: (form: LoginRequest) => AuthService.login(form),
+    const loginMutation = useMutation<LoginResponse, ApiError, LoginRequest>({
+        mutationFn: (form: LoginRequest) => login(form),
+        onError: (error: ApiError) => {
+            const message = Array.isArray(error.response.data.message) ? error.response.data.message[0] : error.response.data.message;
+            showNotification(message, 'error');
+        }
     });
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
